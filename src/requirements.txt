@@ -1,0 +1,17 @@
+flask
+qdrant-client
+requests
+python-dotenv
+psycopg2
+psycopg2-binary
+pyyaml
+langchain
+PyPDF2
+python-pptx
+python-docx
+pytesseract
+Pillow
+openai
+types-requests
+types-PyYAML
+types-psycopg2

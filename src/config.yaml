@@ -1,0 +1,21 @@
+moodle:
+  url: "http://moodle:8080"
+  token: "" # Debe configurarse vía variable de entorno o manualmente
+  target_course: "prueba"
+
+qdrant:
+  host: "localhost"
+  port: 6333
+  collection_name: "moodle_docs"
+
+embeddings:
+  provider: "ollama"  # "ollama" o "openai"
+  openai_api_key: ""  # Requerido si provider="openai"
+  openai_model: "text-embedding-3-small"
+
+ollama:
+  url: "http://localhost:11434"
+  model_name: "llama3:8b"
+
+postgres:
+  connection_string: "postgresql://n8n:n8n_password@localhost:5432/n8n"
