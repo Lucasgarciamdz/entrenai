@@ -13,6 +13,7 @@ from rag.vector_store import VectorStore
 from rag.reranking import rerank_fragments
 from chat.prompts import PROMPT_CHAT
 import importlib
+from openai import OpenAI
 
 class ChatManager:
     """
@@ -202,36 +203,15 @@ class ChatManager:
             Respuesta generada por el modelo
         """
         try:
-            if self.model_name.lower().startswith("bitnet") or "bitnet" in self.model_name.lower():
-                # BitNet inference using transformers
-                transformers = importlib.import_module("transformers")
-                torch = importlib.import_module("torch")
-                model_name = self.model_name
-                device = "cpu"
-                # Lazy load model and tokenizer (could be cached in self if needed)
-                tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-                model = transformers.AutoModelForCausalLM.from_pretrained(model_name)
-                model.to(device)
-                input_text = f"{prompt}\n\nContexto relevante:\n{contexto}"
-                inputs = tokenizer(input_text, return_tensors="pt").to(device)
-                with torch.no_grad():
-                    outputs = model.generate(**inputs, max_new_tokens=256)
-                response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-                # Optionally strip prompt/context from output
-                answer = response[len(input_text):].strip()
-                return answer if answer else response
-            else:
-                response = requests.post(
-                    f"{self.ollama_url}/api/generate",
-                    json={
-                        "model": self.model_name,
-                        "prompt": f"{prompt}\n\nContexto relevante:\n{contexto}",
-                    },
-                    timeout=30
-                )
-                response.raise_for_status()
-                data = response.json()
-                return data.get("response", "")
+            client = OpenAI(base_url=self.ollama_url + "/v1", api_key='ollama')
+            completion = client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": "Eres un asistente útil de Moodle. Responde en español."},
+                    {"role": "user", "content": f"{prompt}\n\nContexto relevante:\n{contexto}"},
+                ],
+            )
+            return completion.choices[0].message.content.strip()
         except Exception as e:
             self.logger.error(f"Error al llamar al LLM: {e}")
             return ""

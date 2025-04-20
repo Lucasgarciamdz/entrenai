@@ -17,8 +17,8 @@ ollama:
   url: "${OLLAMA_URL}"
   model_name: "${OLLAMA_MODEL}"
 
-bitnet:
-  model_name: "${BITNET_MODEL}" # BitNet model for chat (not used for embeddings)
+# bitnet:
+#   model_name: "${BITNET_MODEL}" # BitNet model for chat (not used for embeddings)
 
 postgres:
   connection_string: "${POSTGRES_CONNECTION}"
