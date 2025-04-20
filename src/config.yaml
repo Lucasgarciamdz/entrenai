@@ -1,21 +1,24 @@
 moodle:
-  url: "http://moodle:8080"
-  token: "" # Debe configurarse vía variable de entorno o manualmente
-  target_course: "prueba"
+  url: "${MOODLE_URL}"
+  token: "${MOODLE_TOKEN}" # Debe configurarse vía variable de entorno o manualmente
+  target_course: "${MOODLE_TARGET_COURSE}"
 
 qdrant:
-  host: "localhost"
-  port: 6333
-  collection_name: "moodle_docs"
+  host: "${QDRANT_HOST}"
+  port: ${QDRANT_PORT}
+  collection_name: "${QDRANT_COLLECTION}"
 
 embeddings:
-  provider: "ollama"  # "ollama" o "openai"
-  openai_api_key: ""  # Requerido si provider="openai"
-  openai_model: "text-embedding-3-small"
+  provider: "${EMBEDDING_PROVIDER}" # "ollama" o "openai"
+  openai_api_key: "${OPENAI_API_KEY}" # Requerido si provider="openai"
+  openai_model: "${OPENAI_EMBEDDING_MODEL}"
 
 ollama:
-  url: "http://localhost:11434"
-  model_name: "llama3:8b"
+  url: "${OLLAMA_URL}"
+  model_name: "${OLLAMA_MODEL}"
+
+bitnet:
+  model_name: "${BITNET_MODEL}" # BitNet model for chat (not used for embeddings)
 
 postgres:
-  connection_string: "postgresql://n8n:n8n_password@localhost:5432/n8n"
+  connection_string: "${POSTGRES_CONNECTION}"

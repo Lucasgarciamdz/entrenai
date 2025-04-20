@@ -329,11 +329,18 @@ def create_app(config_path=None):
         logger.error(f"Proveedor de embeddings no soportado: {embedding_provider}")
         raise ValueError(f"Proveedor de embeddings no soportado: {embedding_provider}")
     
+    # Selección de modelo de chat
+    chat_model = config['ollama']['model_name']
+    chat_url = config['ollama']['url']
+    if 'bitnet' in config and config['bitnet'].get('model_name'):
+        chat_model = config['bitnet']['model_name']
+        chat_url = ""
+    
     chat_manager = ChatManager(
         qdrant_client=vector_store,
         db_connection=config['postgres']['connection_string'],
-        ollama_url=config['ollama']['url'],
-        model_name=config['ollama']['model_name']
+        ollama_url=chat_url,
+        model_name=chat_model
     )
     
     # Crear plantillas si no existen

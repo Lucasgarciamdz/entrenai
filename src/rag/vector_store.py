@@ -9,6 +9,7 @@ from core.utils import configurar_logging
 from core.errors import ErrorVectorDB
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
+from qdrant_client.models import Distance, VectorParams
 
 try:
     import openai
@@ -48,6 +49,7 @@ class VectorStore:
         self.collection_name = collection_name
         self.embedding_provider = embedding_provider
         self.logger = configurar_logging("vector_store")
+        self.vector_size = 768  # Tamaño típico para nomic-embed-text
         
         if embedding_provider == "ollama":
             if not ollama_url:
@@ -63,6 +65,42 @@ class VectorStore:
                 openai.api_key = self.openai_api_key
         else:
             raise ValueError("embedding_provider debe ser 'ollama' o 'openai'")
+        
+        # Verificar si la colección existe y crearla si no
+        self._create_collection_if_not_exists()
+
+    def _create_collection_if_not_exists(self):
+        """
+        Crea la colección en Qdrant si no existe.
+        
+        Returns:
+            True si la colección ya existía o se creó correctamente.
+            
+        Raises:
+            ErrorVectorDB: Si ocurre un error al crear la colección.
+        """
+        try:
+            # Verificar si la colección existe
+            collections = self.client.get_collections().collections
+            collection_names = [collection.name for collection in collections]
+            
+            if self.collection_name not in collection_names:
+                self.logger.info(f"Creando colección {self.collection_name} en Qdrant")
+                self.client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=VectorParams(
+                        size=self.vector_size,
+                        distance=Distance.COSINE
+                    )
+                )
+                self.logger.info(f"Colección {self.collection_name} creada correctamente")
+            else:
+                self.logger.info(f"Colección {self.collection_name} ya existe")
+            
+            return True
+        except Exception as e:
+            self.logger.error(f"Error al crear colección en Qdrant: {e}")
+            raise ErrorVectorDB(f"Error al crear colección: {str(e)}")
 
     def _generate_embedding(self, texto: str) -> List[float]:
         """
@@ -115,6 +153,10 @@ class VectorStore:
             ErrorVectorDB: Si ocurre un error al indexar el documento
         """
         try:
+            # Verificar si la colección existe, y crearla si no
+            if not self._create_collection_if_not_exists():
+                raise ErrorVectorDB("No se pudo crear o verificar la colección en Qdrant")
+                
             # Dividir el texto en chunks para evitar límites de tamaño
             chunks = [texto[i:i+512] for i in range(0, len(texto), 512)]
             for i, chunk in enumerate(chunks):
@@ -155,6 +197,11 @@ class VectorStore:
         Raises:
             ErrorVectorDB: Si ocurre un error al buscar
         """
+        # Asegurarse de que la colección existe
+        if not self._create_collection_if_not_exists():
+            self.logger.error("No se pudo crear o verificar la colección en Qdrant")
+            return []
+            
         query_embedding = self._generate_embedding(query)
         if not query_embedding:
             self.logger.error("No se pudo generar el embedding para la consulta")

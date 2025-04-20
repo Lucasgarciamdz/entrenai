@@ -15,3 +15,6 @@ openai
 types-requests
 types-PyYAML
 types-psycopg2
+git+https://github.com/shumingma/transformers.git
+torch
+accelerate

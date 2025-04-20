@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Chat con Asistente de Documentos Moodle</h1>
+
+        <div id="chat-container" class="chat-container">
+            <!-- Los mensajes del chat se cargarán aquí -->
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" id="user-input" class="form-control" 
+                   placeholder="Escribe tu pregunta...">
+            <button class="btn btn-primary" id="send-button">Enviar</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+
+    // Cargar mensajes existentes
+    loadMessages();
+
+    // Enviar mensaje
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    function sendMessage() {
+        const query = userInput.value.trim();
+        if (!query) return;
+
+        // Añadir mensaje del usuario a la UI
+        addMessageToUI('user', query);
+        userInput.value = '';
+
+        // Mostrar indicador de carga
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message assistant-message';
+        loadingDiv.id = 'loading-message';
+        loadingDiv.textContent = 'Buscando información...';
+        chatContainer.appendChild(loadingDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        // Enviar solicitud al servidor
+        fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: query }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Eliminar indicador de carga
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+
+            // Mostrar respuesta
+            addMessageToUI('assistant', data.response);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+
+            // Eliminar indicador de carga
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+
+            // Mostrar mensaje de error
+            addMessageToUI(
+                'assistant', 
+                'Lo siento, ocurrió un error al procesar tu solicitud.'
+            );
+        });
+    }
+
+    function addMessageToUI(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+
+        // Formatear contenido con saltos de línea
+        const formattedContent = content.replace(/\n/g, '<br>');
+        messageDiv.innerHTML = formattedContent;
+
+        chatContainer.appendChild(messageDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function loadMessages() {
+        fetch('/messages')
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages) {
+                    chatContainer.innerHTML = '';
+                    data.messages.forEach(message => {
+                        addMessageToUI(message.role, message.content);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar mensajes:', error);
+            });
+    }
+});
+</script>
+{% endblock %}

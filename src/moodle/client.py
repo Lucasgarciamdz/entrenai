@@ -65,7 +65,7 @@ class MoodleClient:
         Returns:
             Lista de cursos
         """
-        result = self._make_request('core_enrol_get_users_courses', {})
+        result = self._make_request('core_course_get_courses', {})
         if result is None:
             return []
         return result

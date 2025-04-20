@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Sesión de Chat - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Sesión de Chat #{{ session_id[:8] }}</h1>
+
+        <a href="/" class="btn btn-primary mb-3">Continuar esta conversación</a>
+        <a href="/sessions" class="btn btn-secondary mb-3 ms-2">Volver a la lista</a>
+
+        <div class="chat-container">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="message {{ message.role }}-message">
+                    {{ message.content|replace('\n', '<br>')|safe }}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">No hay mensajes en esta sesión.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

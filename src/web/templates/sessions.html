@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Sesiones de Chat - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Sesiones de Chat</h1>
+
+        <a href="/new_session" class="btn btn-primary mb-3">Nueva Sesión</a>
+
+        <div class="list-group">
+            {% if sessions %}
+                {% for s in sessions %}
+                <a href="/session/{{ s.id }}" 
+                   class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Sesión #{{ loop.index }}</h5>
+                        <small>
+                            Actualizado: 
+                            {{ s.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                        </small>
+                    </div>
+                    <p class="mb-1">
+                        Creado: {{ s.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </p>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">No hay sesiones disponibles.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

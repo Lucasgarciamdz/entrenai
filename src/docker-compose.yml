@@ -11,6 +11,8 @@ services:
   postgres:
     image: postgres:16
     restart: always
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -49,7 +51,7 @@ services:
       - MOODLE_URL=http://moodle:8080
       - MOODLE_HOST_URL=http://localhost:8080
     ports:
-      - 5678:5678
+      - "5678:5678"
     links:
       - postgres
     volumes:
@@ -109,7 +111,7 @@ services:
   ollama:
     image: docker.io/ollama/ollama:latest
     ports:
-      - 11434:11434
+      - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     container_name: ollama
